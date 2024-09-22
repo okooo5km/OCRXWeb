@@ -20,6 +20,12 @@ func routes(_ app: Application) throws {
         // 生成临时文件路径
         let fileName = UUID().uuidString + "_" + file.filename
         let filePath = app.directory.publicDirectory + fileName
+
+        do {
+            try FileManager.default.createDirectory(atPath: app.directory.publicDirectory, withIntermediateDirectories: true)
+        } catch {
+            throw Abort(.badRequest, reason: "Unable to create directory: \(error)")
+        }
         
         // 保存上传的文件
         try await req.fileio.writeFile(file.data, at: filePath)
