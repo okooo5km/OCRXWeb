@@ -16,7 +16,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "App",
+            name: "ocrxweb",
             dependencies: [
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "Vapor", package: "vapor"),
@@ -27,7 +27,7 @@ let package = Package(
         .testTarget(
             name: "AppTests",
             dependencies: [
-                .target(name: "App"),
+                .target(name: "ocrxweb"),
                 .product(name: "XCTVapor", package: "vapor"),
             ]
         )
