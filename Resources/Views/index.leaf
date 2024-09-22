@@ -1,12 +1,182 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图像处理工具</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f4f9; 
+            color: #333; 
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container { 
+            max-width: 400px; 
+            width: 100%;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: bold; 
+        }
+        select, textarea, input[type="file"], button { 
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            margin-top: 4px;
+        }
+        button { 
+            background-color: #4CAF50; 
+            color: white; 
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
 
-  <title>#(title)</title>
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
 </head>
-
 <body>
-  <h1>#(title)</h1>
+    <div class="container">
+        <h1 style="text-align: center; margin-bottom: 20px;">图片 OCR 工具</h1>
+        <div class="form-group">
+            <label for="file-upload">上传图片：</label>
+            <input type="file" id="file-upload" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label for="format-select">选择格式：</label>
+            <select id="format-select">
+                <option value="json">输出JSON</option>
+                <option value="csv">输出CSV</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <button id="process-button">确认</button>
+        </div>
+        <div class="form-group">
+            <label for="text-output">输出文本：</label>
+            <textarea id="text-output" rows="4" readonly>这里将显示输出文本...</textarea>
+        </div>
+        <div class="form-group">
+            <button id="export-button">导出</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let processedData = '';
+        let originalFileName = '';
+
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                originalFileName = e.target.files[0].name.split('.').slice(0, -1).join('.');
+            }
+        });
+
+        document.getElementById('process-button').addEventListener('click', function() {
+            const fileInput = document.getElementById('file-upload');
+            const formatSelect = document.getElementById('format-select').value;
+            const outputTextarea = document.getElementById('text-output');
+
+            if (fileInput.files.length === 0) {
+                outputTextarea.value = '请先上传一张图片。';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            let endpoint = formatSelect === 'json' ? '/ocr2json' : '/ocr2csv';
+
+            outputTextarea.value = '正在处理...';
+
+            fetch(endpoint, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应不正常');
+                }
+                return response.text();
+            })
+            .then(data => {
+                processedData = data;
+                outputTextarea.value = data;
+                copyToClipboard(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                outputTextarea.value = '处理图片时发生错误：' + error.message;
+            });
+        });
+
+        document.getElementById('export-button').addEventListener('click', function() {
+            if (!processedData) {
+                alert('没有可导出的数据。请先处理图片。');
+                return;
+            }
+
+            const format = document.getElementById('format-select').value;
+            const fileName = `${originalFileName}.${format}`;
+            const blob = new Blob([processedData], {type: `text/${format}`});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+        });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('文本已复制到剪贴板');
+            }).catch(err => {
+                console.error('无法复制文本: ', err);
+                showToast('复制到剪贴板失败');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

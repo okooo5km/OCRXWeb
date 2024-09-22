@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "OcrXWeb",
+    name: "OCRXWeb",
     platforms: [
-       .macOS(.v13)
+       .macOS(.v12)
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
@@ -22,21 +22,15 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
-            ],
-            swiftSettings: swiftSettings
+            ]
         ),
         .testTarget(
             name: "AppTests",
             dependencies: [
                 .target(name: "App"),
                 .product(name: "XCTVapor", package: "vapor"),
-            ],
-            swiftSettings: swiftSettings
+            ]
         )
     ]
 )
 
-var swiftSettings: [SwiftSetting] { [
-    .enableUpcomingFeature("DisableOutwardActorInference"),
-    .enableExperimentalFeature("StrictConcurrency"),
-] }
