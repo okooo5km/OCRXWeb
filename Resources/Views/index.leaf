@@ -1,100 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图像处理工具</title>
+    <title>图片 OCR 工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/csv.min.js"></script>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f4f9; 
-            color: #333; 
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+        body {
+            background-color: #f0f4f8;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='%23d1d5db' fill-opacity='0.1'%3E%3Cpath d='M20 50 L40 30 L60 50 L40 70 Z'/%3E%3Ccircle cx='100' cy='50' r='15'/%3E%3Crect x='130' y='35' width='30' height='30' rx='5'/%3E%3Cpath d='M160 120 L180 100 L200 120 L180 140 Z'/%3E%3Cpath d='M65 160 C65 150 75 140 85 140 C95 140 105 150 105 160 C105 170 95 180 85 180 C75 180 65 170 65 160'/%3E%3C/g%3E%3C/svg%3E");
         }
-        .container { 
-            max-width: 400px; 
-            width: 100%;
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-        }
-        .form-group { 
-            margin-bottom: 20px; 
-        }
-        label { 
-            display: block; 
-            margin-bottom: 8px; 
-            font-weight: bold; 
-        }
-        select, textarea, input[type="file"], button { 
-            width: 100%; 
-            padding: 10px; 
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            margin-top: 4px;
-        }
-        button { 
-            background-color: #4CAF50; 
-            color: white; 
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #45a049;
+        pre code {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
         }
         .toast {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #333;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s ease-in-out;
         }
-
         .toast.show {
             opacity: 1;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        thead {
+            background-color: #f8fafc;
+        }
+        tr:nth-child(even) {
+            background-color: #f1f5f9;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1 style="text-align: center; margin-bottom: 20px;">图片 OCR 工具</h1>
-        <div class="form-group">
-            <label for="file-upload">上传图片：</label>
-            <input type="file" id="file-upload" accept="image/*">
-        </div>
-        <div class="form-group">
-            <label for="format-select">选择格式：</label>
-            <select id="format-select">
-                <option value="json">输出JSON</option>
-                <option value="csv">输出CSV</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <button id="process-button">确认</button>
-        </div>
-        <div class="form-group">
-            <label for="text-output">输出文本：</label>
-            <textarea id="text-output" rows="4" readonly>这里将显示输出文本...</textarea>
-        </div>
-        <div class="form-group">
-            <button id="export-button">导出</button>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl bg-white shadow-xl rounded-lg">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">图片 OCR 工具</h1>
+            <div class="space-y-6">
+                <div class="flex flex-col items-center justify-center w-full">
+                    <label for="file-upload" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">点击上传</span> 或拖拽图片到此处</p>
+                            <p class="text-xs text-gray-500">PNG, JPG, GIF 最大 10MB</p>
+                        </div>
+                        <input id="file-upload" name="file-upload" type="file" class="hidden" accept="image/*">
+                    </label>
+                    <p id="file-name" class="mt-2 text-sm text-gray-500"></p>
+                </div>
+                <div class="flex justify-between items-center">
+                    <select id="format-select" class="w-[180px] p-2 border border-gray-300 rounded-md bg-white text-gray-900">
+                        <option value="json">输出JSON</option>
+                        <option value="csv">输出CSV</option>
+                    </select>
+                    <button id="process-button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        处理 OCR
+                    </button>
+                </div>
+                <div id="result-container" class="mt-6 hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-lg font-semibold text-gray-700">OCR 结果</h2>
+                        <button id="export-button" class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            导出
+                        </button>
+                    </div>
+                    <div class="flex space-x-4">
+                        <div id="image-preview" class="w-1/2 border border-gray-200 rounded-xl p-2">
+                            <img id="preview-image" src="" alt="预览图片" class="w-full h-auto object-contain rounded-lg shadow-xs border border-gray-300">
+                        </div>
+                        <div class="w-1/2 rounded-xl border border-gray-200 p-2">
+                            <div id="result-wrapper" class="overflow-auto">
+                                <pre id="result-pre" class="hidden"><code id="text-output" class="block w-full p-2 text-sm font-mono bg-gray-100 rounded-lg border border-gray-300"></code></pre>
+                                <div id="table-output" class="hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast">已复制到剪贴板</div>
 
     <script>
         let processedData = '';
@@ -102,17 +117,38 @@
 
         document.getElementById('file-upload').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
-                originalFileName = e.target.files[0].name.split('.').slice(0, -1).join('.');
+                const file = e.target.files[0];
+                originalFileName = file.name.split('.').slice(0, -1).join('.');
+                document.getElementById('file-name').textContent = file.name;
+                
+                // 显示图片预览
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const previewImage = document.getElementById('preview-image');
+                        const textOutput = document.getElementById('text-output');
+                        previewImage.src = e.target.result;
+                        textOutput.style.maxHeight = `${this.height}px`;
+                        document.getElementById('result-container').classList.remove('hidden');
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
             }
         });
 
         document.getElementById('process-button').addEventListener('click', function() {
             const fileInput = document.getElementById('file-upload');
             const formatSelect = document.getElementById('format-select').value;
-            const outputTextarea = document.getElementById('text-output');
+            const outputElement = document.getElementById('text-output');
+            const preElement = document.getElementById('result-pre');
+            const tableElement = document.getElementById('table-output');
+            const wrapperElement = document.getElementById('result-wrapper');
+            const imageElement = document.getElementById('preview-image');
 
             if (fileInput.files.length === 0) {
-                outputTextarea.value = '请先上传一张图片。';
+                outputElement.textContent = '请先上传一张图片。';
                 return;
             }
 
@@ -122,7 +158,7 @@
 
             let endpoint = formatSelect === 'json' ? '/ocr2json' : '/ocr2csv';
 
-            outputTextarea.value = '正在处理...';
+            outputElement.textContent = '正在处理...';
 
             fetch(endpoint, {
                 method: 'POST',
@@ -136,12 +172,25 @@
             })
             .then(data => {
                 processedData = data;
-                outputTextarea.value = data;
+                if (formatSelect === 'json') {
+                    preElement.classList.remove('hidden');
+                    tableElement.classList.add('hidden');
+                    outputElement.textContent = data;
+                    outputElement.className = 'language-json hljs';
+                    hljs.highlightElement(outputElement);
+                } else {
+                    preElement.classList.add('hidden');
+                    tableElement.classList.remove('hidden');
+                    tableElement.innerHTML = createTableFromCSV(data);
+                }
                 copyToClipboard(data);
+
+                // 设置结果容器的最大高度与图片高度相同
+                wrapperElement.style.maxHeight = `${imageElement.offsetHeight}px`;
             })
             .catch(error => {
                 console.error('Error:', error);
-                outputTextarea.value = '处理图片时发生错误：' + error.message;
+                outputElement.textContent = '处理图片时发生错误：' + error.message;
             });
         });
 
@@ -162,20 +211,43 @@
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                showToast('文本已复制到剪贴板');
+                showToast();
             }).catch(err => {
                 console.error('无法复制文本: ', err);
-                showToast('复制到剪贴板失败');
             });
         }
 
-        function showToast(message) {
+        function showToast() {
             const toast = document.getElementById('toast');
-            toast.textContent = message;
             toast.classList.add('show');
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        }
+
+        function createTableFromCSV(csv) {
+            const rows = csv.split('\n');
+            let tableHtml = '<table class="w-full text-sm">';
+            
+            rows.forEach((row, index) => {
+                const cells = row.split(',');
+                if (index === 0) {
+                    tableHtml += '<thead><tr>';
+                    cells.forEach(cell => {
+                        tableHtml += `<th>${cell.trim()}</th>`;
+                    });
+                    tableHtml += '</tr></thead><tbody>';
+                } else {
+                    tableHtml += '<tr>';
+                    cells.forEach(cell => {
+                        tableHtml += `<td>${cell.trim()}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                }
+            });
+            
+            tableHtml += '</tbody></table>';
+            return tableHtml;
         }
     </script>
 </body>
