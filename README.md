@@ -20,7 +20,7 @@
 
 1. 克隆仓库:
 
-   ```
+   ```shell
    git clone https://github.com/yourusername/OcrXWeb.git
    cd OcrXWeb
    ```
