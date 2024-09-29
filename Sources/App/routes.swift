@@ -37,7 +37,7 @@ func routes(_ app: Application) throws {
         try FileManager.default.removeItem(atPath: filePath)
         
         // 创建响应
-        let jsonString = result.json
+        let jsonString = result.compact.json
         
         return Response(
             status: .ok,
@@ -66,7 +66,7 @@ func routes(_ app: Application) throws {
         try FileManager.default.removeItem(atPath: filePath)
         
         // 创建响应
-        let csvString = result.csv
+        let csvString = result.compact.csv
         
         return Response(
             status: .ok,
